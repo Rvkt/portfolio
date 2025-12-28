@@ -22,15 +22,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ✅ FIX: pin Flutter version (DO NOT use "stable")
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.22.3'
-          cache: true
+      # ✅ Install Flutter (step 1)
+      - name: Install Flutter SDK
+        run: |
+          git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
+          echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
+      # ✅ Verify Flutter (step 2)
       - name: Verify Flutter
         run: flutter --version
+
+      # ✅ Enable Web (safe even if already enabled)
+      - name: Enable Flutter Web
+        run: flutter config --enable-web
+
+      # ✅ Cache pub packages
+      - name: Cache Flutter pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
 
       - name: Install dependencies
         run: flutter pub get
